@@ -1,2 +1,2 @@
-# RecoSoft_AI-CyberPunks
+# RecoSoft_AI
 ByteVerse Hackathon
