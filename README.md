@@ -4,6 +4,29 @@
 ![Python](https://img.shields.io/badge/Python-Django-green)
 ![Frontend](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS%2FBootstrap%2FTailwind-yellow)
 
+PROTOTYPE VIDEO LINK : https://drive.google.com/drive/folders/1J6FErGlVxI7ygY6OIbLas6-Ndftqiruy?usp=sharing
+
+## Getting Started
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/RecoSoft-AI.git
+
+Set up virtual environment:
+
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+
+Install dependencies:
+pip install -r requirements.txt
+
+Set up environment variables (create .env file)
+
+Run migrations:
+python manage.py migrate
+
+Start development server:
+python manage.py runserver
+
 ## Problem Statement
 Disorganized medical records lead to significant healthcare inefficiencies:
 - 30% of patients miss test results ([Annals of Internal Medicine])
@@ -65,23 +88,4 @@ A comprehensive medical records management system that:
 | Dr. K Kavitha | Academic | 18 Years |
 | Dr. G Pradeep Kumar | Academic | 14 Years |
 
-## Getting Started
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/RecoSoft-AI.git
 
-Set up virtual environment:
-
-python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-
-Install dependencies:
-pip install -r requirements.txt
-
-Set up environment variables (create .env file)
-
-Run migrations:
-python manage.py migrate
-
-Start development server:
-python manage.py runserver
