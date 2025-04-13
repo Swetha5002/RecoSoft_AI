@@ -1,0 +1,87 @@
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3 d-flex align-items-center">
+        <div class="bg-primary-light p-2 rounded-circle me-3">
+            <i class="fas fa-{% if event.event_type == 'checkup' %}heartbeat{% elif event.event_type == 'surgery' %}procedures{% elif event.event_type == 'illness' %}virus{% else %}stethoscope{% endif %} text-primary"></i>
+        </div>
+        <div>
+            <div class="fw-medium">Type</div>
+            <small class="text-muted">{{ event.get_event_type_display }}</small>
+        </div>
+    </div>
+    
+    {% if event.hospital %}
+    <div class="col-md-6 col-lg-3 d-flex align-items-center">
+        <div class="bg-primary-light p-2 rounded-circle me-3">
+            <i class="fas fa-{% if event.event_type == 'surgery' %}hospital{% else %}clinic-medical{% endif %} text-primary"></i>
+        </div>
+        <div>
+            <div class="fw-medium">Location</div>
+            <small class="text-muted">{{ event.hospital }}</small>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if event.doctor %}
+    <div class="col-md-6 col-lg-3 d-flex align-items-center">
+        <div class="bg-primary-light p-2 rounded-circle me-3">
+            <i class="fas fa-user-md text-primary"></i>
+        </div>
+        <div>
+            <div class="fw-medium">Doctor</div>
+            <small class="text-muted">{{ event.doctor }}</small>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="col-md-6 col-lg-3 d-flex align-items-center">
+        <div class="bg-primary-light p-2 rounded-circle me-3">
+            <i class="fas fa-dollar-sign text-primary"></i>
+        </div>
+        <div>
+            <div class="fw-medium">Cost</div>
+            <small class="text-muted">${{ event.total_cost }} ({% if event.insurance_covered > 0 %}${{ event.insurance_covered }} covered{% else %}no insurance{% endif %})</small>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white p-4 rounded mb-4 border">
+    <h6 class="fw-bold mb-3 text-primary">Summary</h6>
+    <p class="mb-0">{{ event.summary|linebreaks }}</p>
+</div>
+
+{% if event.attachments.all %}
+<div class="mb-4">
+    <h6 class="fw-bold mb-3 text-primary">Attachments</h6>
+    <div class="d-flex flex-wrap gap-2">
+        {% for attachment in event.attachments.all %}
+            <a href="{{ attachment.file.url }}" class="badge bg-light text-dark" target="_blank">
+                <i class="fas fa-paperclip me-1"></i> {{ attachment.filename }}
+            </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        {% if event.condition %}
+            <span class="badge bg-light text-dark me-2">
+                <i class="fas fa-diagnoses me-1"></i> {{ event.condition }}
+            </span>
+        {% endif %}
+        <span class="badge bg-light text-dark">
+            <i class="fas fa-{% if event.status == 'resolved' %}check-circle text-success{% elif event.status == 'ongoing' %}hourglass-half text-warning{% else %}exclamation-circle text-danger{% endif %} me-1"></i> 
+            {{ event.get_status_display }}
+        </span>
+    </div>
+    <div class="d-flex gap-2">
+        {% if event and event.pk %}
+            <a href="{% url 'timeline:event-edit' pk=event.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
+                <i class="fas fa-edit me-1"></i> Edit
+            </a>
+            <a href="{% url 'timeline:event-delete' pk=event.pk %}" class="btn btn-sm btn-outline-danger rounded-pill">
+                <i class="fas fa-trash me-1"></i> Delete
+            </a>
+        {% endif %}
+    </div>
+</div>

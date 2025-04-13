@@ -1,0 +1,64 @@
+{% extends 'timeline/base.html' %}
+{% load static %}
+
+{% block title %}Your Medical Timeline — Stay Organized{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center py-16 bg-gradient-to-r from-green-300 via-green-200 to-green-100">
+    <div class="container">
+        <h1 class="text-5xl font-extrabold text-gray-800 mb-4">Your Health, Well Organized</h1>
+        <p class="text-xl text-gray-600 mb-6">A simple, secure way to track and manage your medical history in one place</p>
+        {% if not user.is_authenticated %}
+            <div class="d-flex justify-content-center gap-4">
+                <a href="{% url 'timeline:login' %}" class="btn btn-success btn-lg rounded-pill px-5 shadow">
+                    Get Started
+                </a>
+                <a href="{% url 'timeline:signup' %}" class="btn btn-outline-success btn-lg rounded-pill px-5 shadow">
+                    Sign Up
+                </a>
+            </div>
+        {% else %}
+            <div class="d-flex justify-content-center gap-4">
+                <a href="{% url 'timeline:index' %}" class="btn btn-success btn-lg rounded-pill px-5 shadow">
+                    <i class="fas fa-columns me-2"></i> Dashboard
+                </a>
+                <a href="{% url 'timeline:event-add' %}" class="btn btn-outline-success btn-lg rounded-pill px-5 shadow">
+                    <i class="fas fa-plus me-2"></i> Add Record
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="p-5 text-center border border-green-300 rounded-3 bg-white shadow-sm hover:shadow-lg transition">
+                <div class="mb-3 text-green-600">
+                    <i class="fas fa-timeline fa-3x"></i>
+                </div>
+                <h3 class="h5 font-semibold mb-2">Interactive Timeline</h3>
+                <p class="text-gray-600">Easily browse your health history in a clean, visual timeline format.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-5 text-center border border-green-300 rounded-3 bg-white shadow-sm hover:shadow-lg transition">
+                <div class="mb-3 text-green-600">
+                    <i class="fas fa-share-alt fa-3x"></i>
+                </div>
+                <h3 class="h5 font-semibold mb-2">Private & Easy Sharing</h3>
+                <p class="text-gray-600">Securely share your records with doctors and family whenever needed.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-5 text-center border border-green-300 rounded-3 bg-white shadow-sm hover:shadow-lg transition">
+                <div class="mb-3 text-green-600">
+                    <i class="fas fa-file-medical fa-3x"></i>
+                </div>
+                <h3 class="h5 font-semibold mb-2">Smart Document Storage</h3>
+                <p class="text-gray-600">Keep prescriptions, reports, and documents neatly stored in one place.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

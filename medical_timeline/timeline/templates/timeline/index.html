@@ -1,0 +1,225 @@
+{% extends 'timeline/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4 bg-green-50 min-vh-100">
+  <div class="row">
+
+    <!-- Sidebar Statistics -->
+    <div class="col-lg-3 mb-4">
+      <div class="p-4 rounded-xl shadow bg-white sticky-top" style="top: 2rem;">
+        <h4 class="fw-bold mb-4 text-green-700">Statistics</h4>
+
+        <div class="mb-3">
+          <div class="p-3 mb-3 rounded bg-green-100 text-green-800">
+            <h3>{{ stats.total_events }}</h3>
+            <small>Total Events</small>
+          </div>
+          <div class="p-3 mb-3 rounded bg-green-100 text-green-800">
+            <h3>₹{{ stats.total_cost }}</h3>
+            <small>Total Cost</small>
+          </div>
+          <div class="p-3 mb-3 rounded bg-green-100 text-green-800">
+            <h3>₹{{ stats.insurance_covered }}</h3>
+            <small>Insurance Covered</small>
+          </div>
+        </div>
+
+        <h5 class="fw-bold text-green-700 mb-3">Event Types</h5>
+        {% for type in stats.event_types %}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span>{{ type.event_type|title }}</span>
+          <span class="badge bg-success rounded-pill">{{ type.count }}</span>
+        </div>
+        {% endfor %}
+
+        <button class="btn btn-outline-success w-100 mt-4" onclick="shareTimeline()">
+          <i class="fas fa-share-alt me-2"></i> Share Timeline
+        </button>
+      </div>
+    </div>
+
+    <!-- Timeline Events -->
+    <div class="col-lg-9">
+      <div class="accordion" id="timelineAccordion">
+        {% for year, events in events_by_year.items %}
+        <div class="mb-4">
+          <h3 class="text-green-800 fw-bold mb-3">{{ year }}</h3>
+
+          {% for event in events %}
+          <div class="accordion-item mb-3 rounded-xl border-0 shadow-sm hover:shadow-md transition-shadow">
+            <h2 class="accordion-header" id="heading{{ event.id }}">
+              <button class="accordion-button collapsed bg-green-50 text-green-800 fw-medium p-4"
+                type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapse{{ event.id }}"
+                aria-expanded="false" aria-controls="collapse{{ event.id }}">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                  <span><i class="fas {% if event.event_type == 'checkup' %}fa-stethoscope
+                    {% elif event.event_type == 'surgery' %}fa-hospital
+                    {% elif event.event_type == 'medication' %}fa-pills
+                    {% else %}fa-notes-medical{% endif %} me-2"></i>
+                    {{ event.title }}</span>
+                  <small class="text-muted">{{ event.date|date:"F j, Y" }}</small>
+                </div>
+              </button>
+            </h2>
+
+            <div id="collapse{{ event.id }}" class="accordion-collapse collapse"
+              aria-labelledby="heading{{ event.id }}" data-bs-parent="#timelineAccordion">
+              <div class="accordion-body bg-white p-4">
+                <div class="row g-4">
+                  <!-- Event Type and Status -->
+                  <div class="col-md-6">
+                    <div class="p-3 rounded bg-light">
+                      <p class="mb-1"><i class="fas fa-tag text-primary me-2"></i><strong>Type:</strong></p>
+                      <p class="mb-0">{{ event.get_event_type_display }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="p-3 rounded bg-light">
+                      <p class="mb-1"><i class="fas fa-info-circle text-info me-2"></i><strong>Status:</strong></p>
+                      <p class="mb-0">{{ event.get_status_display }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Cost Details -->
+                  <div class="col-md-6">
+                    <div class="p-3 rounded bg-light">
+                      <p class="mb-1"><i class="fas fa-money-bill text-success me-2"></i><strong>Total Cost:</strong></p>
+                      <p class="mb-0">₹{{ event.total_cost }}</p>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="p-3 rounded bg-light">
+                      <p class="mb-1"><i class="fas fa-shield-alt text-warning me-2"></i><strong>Insurance Covered:</strong></p>
+                      <p class="mb-0">₹{{ event.insurance_covered }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Location Details -->
+                  {% if event.hospital or event.doctor %}
+                  <div class="col-12">
+                    <div class="p-3 rounded bg-light">
+                      {% if event.hospital %}
+                      <p class="mb-1"><i class="fas fa-hospital text-danger me-2"></i><strong>Hospital:</strong></p>
+                      <p class="mb-2">{{ event.hospital }}</p>
+                      {% endif %}
+                      {% if event.doctor %}
+                      <p class="mb-1"><i class="fas fa-user-md text-primary me-2"></i><strong>Doctor:</strong></p>
+                      <p class="mb-0">{{ event.doctor }}</p>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% endif %}
+
+                  <!-- Summary -->
+                  <div class="col-12">
+                    <div class="p-3 rounded bg-light">
+                      <p class="mb-1"><i class="fas fa-align-left text-secondary me-2"></i><strong>Summary:</strong></p>
+                      <p class="mb-0">{{ event.summary|linebreaks }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="col-12">
+                    <div class="d-flex gap-2 justify-content-end">
+                      <a href="{% url 'timeline:event-edit' event.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit me-2"></i>Edit
+                      </a>
+                      <a href="{% url 'timeline:event-delete' event.pk %}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Delete
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+          <div class="p-5 rounded shadow bg-white">
+            <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+            <h3 class="h5">No medical events yet</h3>
+            <p class="text-muted">Add your first event to start tracking.</p>
+            <a href="{% url 'timeline:event-add' %}" class="btn btn-success rounded-pill px-4">
+              <i class="fas fa-plus me-2"></i> Add Event
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow rounded">
+      <div class="modal-header">
+        <h5 class="modal-title text-green-800">Share Timeline</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <input type="text" id="shareUrl" class="form-control" readonly>
+          <button class="btn btn-outline-success" onclick="copyShareUrl()">
+            <i class="fas fa-copy"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize all accordions
+    var accordionElements = document.querySelectorAll('.accordion-collapse');
+    accordionElements.forEach(function(accordion) {
+        new bootstrap.Collapse(accordion, {
+            toggle: false
+        });
+    });
+
+    // Add animation classes when expanding/collapsing
+    document.querySelectorAll('.accordion-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const content = document.querySelector(this.getAttribute('data-bs-target'));
+            if (content) {
+                if (this.classList.contains('collapsed')) {
+                    content.classList.add('animate__animated', 'animate__fadeIn');
+                }
+            }
+        });
+    });
+});
+
+function shareTimeline() {
+  fetch('{% url "timeline:share-timeline" user.id %}', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.share_url) {
+      document.getElementById('shareUrl').value = data.share_url;
+      new bootstrap.Modal(document.getElementById('shareModal')).show();
+    }
+  });
+}
+
+function copyShareUrl() {
+  const shareUrl = document.getElementById('shareUrl');
+  shareUrl.select();
+  document.execCommand('copy');
+  alert('Link copied to clipboard!');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% load static %}
+{% if user.is_authenticated %}
+<header class="bg-green-50 shadow-sm py-4 mb-6">
+    <div class="container">
+        <div class="flex justify-between items-center">
+            <!-- Profile Section -->
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <img src="{% if profile and profile.profile_picture and profile.profile_picture.url %}{{ profile.profile_picture.url }}{% else %}{% static 'timeline/images/default-profile.jpg' %}{% endif %}" 
+                         alt="Profile" 
+                         class="w-12 h-12 rounded-full object-cover border-2 border-green-200">
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">{{ user.get_full_name|default:user.username }}</h2>
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-600">
+                        {% if profile %}
+                            {% if profile.birth_date %}
+                                <span class="flex items-center">
+                                    <i class="fas fa-birthday-cake text-green-600 mr-2"></i>
+                                    {{ profile.birth_date|date:"d/m/Y" }}
+                                </span>
+                            {% endif %}
+                            {% if profile.blood_type %}
+                                <span class="flex items-center">
+                                    <i class="fas fa-tint text-green-600 mr-2"></i>
+                                    Blood: {{ profile.blood_type }}
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Actions -->
+            <div class="dropdown">
+                <button class="btn bg-white hover:bg-green-50 text-gray-700 rounded-full px-4 py-2 flex items-center space-x-2 transition-colors duration-200"
+                        type="button" id="profileDropdown" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-circle text-green-600"></i>
+                    <span>Menu</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 bg-white rounded-lg shadow-lg border-0 mt-2" style="min-width: 280px;">
+                    {% if profile %}
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <div class="text-xl font-semibold text-green-600">{{ profile.weight|default:"--" }}</div>
+                                <div class="text-sm text-gray-600">kg</div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <div class="text-xl font-semibold text-green-600">{{ profile.height|default:"--" }}</div>
+                                <div class="text-sm text-gray-600">cm</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'timeline:profile' %}" 
+                       class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-green-50 text-gray-700 transition-colors duration-200">
+                        <i class="fas fa-cog text-green-600"></i>
+                        <span>Settings</span>
+                    </a>
+                    
+                    <a href="{% url 'timeline:event-add' %}"
+                       class="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-green-50 text-gray-700 transition-colors duration-200">
+                        <i class="fas fa-plus text-green-600"></i>
+                        <span>Add Event</span>
+                    </a>
+                    
+                    <div class="dropdown-divider my-2 border-gray-200"></div>
+                    
+                    <form method="post" action="{% url 'timeline:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" 
+                                class="w-full flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors duration-200">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+{% endif %}

@@ -1,0 +1,117 @@
+{% extends 'timeline/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="glass-card p-4 mb-4">
+    <h2 class="h4 mb-4 fw-bold">
+        <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} me-2"></i>
+        {% if object %}Edit{% else %}Add{% endif %} Medical Event
+    </h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        
+        <div class="mb-3">
+            <label class="form-label fw-medium">Attachments</label>
+            <div class="dropzone border rounded p-4 text-center mb-2">
+                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                <p class="mb-1">Drag & drop files here or click to browse</p>
+                <small class="text-muted">Supports PDF, JPG, PNG (max 10MB each)</small>
+                <input type="file" name="attachments" id="attachments" class="d-none" multiple>
+            </div>
+            <div id="file-list" class="mb-3"></div>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2">
+            <a href="{% if object %}{% url 'timeline:event-detail' object.pk %}{% else %}{% url 'timeline:index' %}{% endif %}" 
+               class="btn btn-outline-secondary rounded-pill px-4">
+                Cancel
+            </a>
+            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                <i class="fas fa-save me-2"></i> Save
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Make dropzone interactive
+    const dropzone = document.querySelector('.dropzone');
+    const fileInput = document.getElementById('attachments');
+    const fileList = document.getElementById('file-list');
+    
+    dropzone.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+        updateFileList();
+    });
+    
+    // Drag and drop for files
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        dropzone.classList.add('border-primary', 'bg-light');
+    }
+    
+    function unhighlight() {
+        dropzone.classList.remove('border-primary', 'bg-light');
+    }
+    
+    dropzone.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        updateFileList();
+    }
+    
+    function updateFileList() {
+        if (fileInput.files.length > 0) {
+            let html = '<div class="list-group">';
+            for (let i = 0; i < fileInput.files.length; i++) {
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-file me-2"></i> ${fileInput.files[i].name}</span>
+                        <span class="badge bg-light text-dark">${formatFileSize(fileInput.files[i].size)}</span>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            fileList.innerHTML = html;
+        } else {
+            fileList.innerHTML = '';
+        }
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i]);
+    }
+});
+</script>
+{% endblock %}

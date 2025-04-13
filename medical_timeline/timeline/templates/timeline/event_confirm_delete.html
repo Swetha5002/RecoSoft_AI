@@ -1,0 +1,83 @@
+{% extends "timeline/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="glass-card p-4">
+        <div class="text-center">
+            <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+            <h2 class="h4 mb-4">Delete Medical Event</h2>
+            
+            <p class="mb-4">
+                Are you sure you want to delete the medical event "{{ object.title }}" from {{ object.date|date:"F j, Y" }}?
+                <br>
+                <small class="text-muted">This action cannot be undone.</small>
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'timeline:index' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Event Details Preview -->
+    <div class="glass-card p-4 mt-4">
+        <h3 class="h5 mb-3">Event Details</h3>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="bg-light p-3 rounded">
+                    <strong>Type:</strong> {{ object.get_event_type_display }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-light p-3 rounded">
+                    <strong>Status:</strong> {{ object.get_status_display }}
+                </div>
+            </div>
+            {% if object.hospital %}
+            <div class="col-md-6">
+                <div class="bg-light p-3 rounded">
+                    <strong>Hospital:</strong> {{ object.hospital }}
+                </div>
+            </div>
+            {% endif %}
+            {% if object.doctor %}
+            <div class="col-md-6">
+                <div class="bg-light p-3 rounded">
+                    <strong>Doctor:</strong> {{ object.doctor }}
+                </div>
+            </div>
+            {% endif %}
+            <div class="col-12">
+                <div class="bg-light p-3 rounded">
+                    <strong>Summary:</strong><br>
+                    {{ object.summary|linebreaks }}
+                </div>
+            </div>
+            {% if object.attachments.exists %}
+            <div class="col-12">
+                <div class="bg-light p-3 rounded">
+                    <strong>Attachments:</strong><br>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        {% for attachment in object.attachments.all %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-paperclip me-1"></i>
+                                {{ attachment.filename }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

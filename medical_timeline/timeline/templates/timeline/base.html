@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Medical Timeline{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    'primary': '#10B981',
+                    'primary-light': '#D1FAE5',
+                    'primary-dark': '#059669',
+                }
+            }
+        }
+    }
+    </script>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'timeline/css/styles.css' %}">
+</head>
+
+<body class="bg-gray-50">
+    <!-- Merged Navigation and Profile Header -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-6">
+                    <a href="{% url 'timeline:home' %}" class="flex items-center space-x-2">
+                        <i class="fas fa-heartbeat text-green-600 text-2xl"></i>
+                        <span class="font-bold text-xl text-gray-800">RecoSoft</span>
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'timeline:index' %}" 
+                           class="text-gray-600 hover:text-green-600 transition-colors duration-200">Dashboard</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'timeline:analytics' %}" 
+                               class="text-gray-600 hover:text-green-600 transition-colors duration-200">
+                                <i class="fas fa-chart-line me-1"></i>Analytics
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'timeline:event-add' %}" 
+                           class="text-gray-600 hover:text-green-600 transition-colors duration-200">Add Event</a>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <!-- Profile Section -->
+                        <div class="flex items-center space-x-3">
+                            {% if profile %}
+                                <span class="hidden md:flex items-center text-sm text-gray-600">
+                                    {% if profile.blood_type %}
+                                        <i class="fas fa-tint text-green-600 mr-1"></i>
+                                        {{ profile.blood_type }}
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                            
+                            <div class="dropdown">
+                                <button class="flex items-center space-x-2 bg-white hover:bg-green-50 rounded-full px-3 py-2 transition-colors duration-200"
+                                        type="button" id="profileDropdown" data-bs-toggle="dropdown">
+                                    <img src="{% if profile and profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'timeline/images/default-profile.jpg' %}{% endif %}" 
+                                         alt="Profile" 
+                                         class="w-8 h-8 rounded-full object-cover border-2 border-green-200">
+                                    <span class="hidden md:inline text-gray-700">{{ user.get_full_name|default:user.username }}</span>
+                                    <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                                </button>
+                                
+                                <div class="dropdown-menu dropdown-menu-end mt-2 p-3 bg-white rounded-xl shadow-lg border-0" style="min-width: 280px;">
+                                    <div class="px-3 py-2 text-gray-600 border-b border-gray-100">
+                                        <div class="font-semibold text-gray-800">{{ user.get_full_name|default:user.username }}</div>
+                                        <div class="text-sm">{{ user.email }}</div>
+                                    </div>
+                                    
+                                    {% if profile %}
+                                        <div class="grid grid-cols-2 gap-3 p-3">
+                                            <div class="bg-green-50 p-3 rounded-lg">
+                                                <div class="text-xl font-semibold text-green-600">{{ profile.weight|default:"--" }}</div>
+                                                <div class="text-sm text-gray-600">kg</div>
+                                            </div>
+                                            <div class="bg-green-50 p-3 rounded-lg">
+                                                <div class="text-xl font-semibold text-green-600">{{ profile.height|default:"--" }}</div>
+                                                <div class="text-sm text-gray-600">cm</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="p-2">
+                                        <a href="{% url 'timeline:profile' %}" 
+                                           class="flex items-center space-x-2 p-2 rounded-lg hover:bg-green-50 text-gray-700 transition-colors duration-200">
+                                            <i class="fas fa-cog text-green-600"></i>
+                                            <span>Settings</span>
+                                        </a>
+                                        
+                                        <form method="post" action="{% url 'timeline:logout' %}" class="mt-2">
+                                            {% csrf_token %}
+                                            <button type="submit" 
+                                                    class="w-full flex items-center space-x-2 p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors duration-200">
+                                                <i class="fas fa-sign-out-alt"></i>
+                                                <span>Logout</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'timeline:login' %}" 
+                           class="btn btn-outline-success rounded-full px-4">Login</a>
+                        <a href="{% url 'timeline:signup' %}" 
+                           class="btn btn-success rounded-full px-4">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto py-8">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Floating Add Button -->
+    {% if user.is_authenticated %}
+        <a href="{% url 'timeline:event-add' %}"
+           class="fixed bottom-8 right-8 bg-primary hover:bg-primary-dark text-white rounded-full p-4 shadow-lg transition-transform hover:-translate-y-1">
+            <i class="fas fa-plus text-xl"></i>
+        </a>
+    {% endif %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'timeline/js/main.js' %}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

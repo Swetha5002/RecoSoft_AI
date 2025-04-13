@@ -1,0 +1,88 @@
+{% extends "timeline/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="glass-card p-4">
+                <h2 class="text-center mb-4">Edit Profile</h2>
+                
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.profile_picture %}
+                    <div class="text-center mb-4">
+                        {% if object.profile_picture %}
+                            <img src="{{ object.profile_picture.url }}" alt="Current Profile Picture" 
+                                 class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                        {% endif %}
+                        <div class="mb-3">
+                            {{ form.profile_picture|as_crispy_field }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.birth_date|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.blood_type|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.height|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.weight|as_crispy_field }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <a href="{% url 'timeline:index' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Timeline
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview profile picture before upload
+    const profilePicInput = document.getElementById('id_profile_picture');
+    if (profilePicInput) {
+        profilePicInput.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.querySelector('img.rounded-circle');
+                    if (preview) {
+                        preview.src = e.target.result;
+                    } else {
+                        const newPreview = document.createElement('img');
+                        newPreview.src = e.target.result;
+                        newPreview.classList.add('rounded-circle', 'mb-3');
+                        newPreview.style.width = '150px';
+                        newPreview.style.height = '150px';
+                        newPreview.style.objectFit = 'cover';
+                        profilePicInput.parentElement.insertBefore(newPreview, profilePicInput);
+                    }
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
