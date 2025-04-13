@@ -70,27 +70,18 @@ A comprehensive medical records management system that:
    ```bash
    git clone https://github.com/yourusername/RecoSoft-AI.git
 
-
 Set up virtual environment:
 
-bash
-Copy
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-Install dependencies:
 
-bash
-Copy
+Install dependencies:
 pip install -r requirements.txt
+
 Set up environment variables (create .env file)
 
 Run migrations:
-
-bash
-Copy
 python manage.py migrate
-Start development server:
 
-bash
-Copy
+Start development server:
 python manage.py runserver
