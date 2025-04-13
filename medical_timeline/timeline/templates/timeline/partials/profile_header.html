@@ -6,7 +6,7 @@
             <!-- Profile Section -->
             <div class="flex items-center space-x-4">
                 <div class="relative">
-                    <img src="{% if profile and profile.profile_picture and profile.profile_picture.url %}{{ profile.profile_picture.url }}{% else %}{% static 'timeline/images/default-profile.jpg' %}{% endif %}" 
+                    <img src="{% if profile and profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'timeline/images/default-profile.jpg' %}{% endif %}" 
                          alt="Profile" 
                          class="w-12 h-12 rounded-full object-cover border-2 border-green-200">
                     <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>

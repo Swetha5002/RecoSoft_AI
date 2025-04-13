@@ -11,67 +11,39 @@
         
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            
-            <div class="row">
-                <div class="col-md-6">
-                    {{ form.event_type|as_crispy_field }}
-                </div>
-                <div class="col-md-6">
-                    {{ form.date|as_crispy_field }}
-                </div>
-            </div>
-            
-            {{ form.title|as_crispy_field }}
-            
-            <div class="row">
-                <div class="col-md-6">
-                    {{ form.condition|as_crispy_field }}
-                </div>
-                <div class="col-md-6">
-                    {{ form.status|as_crispy_field }}
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    {{ form.hospital|as_crispy_field }}
-                </div>
-                <div class="col-md-6">
-                    {{ form.doctor|as_crispy_field }}
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    {{ form.total_cost|as_crispy_field }}
-                </div>
-                <div class="col-md-6">
-                    {{ form.insurance_covered|as_crispy_field }}
-                </div>
-            </div>
-            
-            {{ form.summary|as_crispy_field }}
-            
+            {{ form|crispy }}
+
             <div class="mb-3">
-                <label class="form-label fw-medium">Attachments</label>
-                <div class="dropzone border rounded p-4 text-center mb-2">
-                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                    <p class="mb-1">Drag & drop files here or click to browse</p>
-                    <small class="text-muted">Supports PDF, JPG, PNG (max 10MB each)</small>
-                    <input type="file" name="attachments" id="attachments" class="d-none" multiple>
-                </div>
-                <div id="file-list" class="mb-3"></div>
+                <label for="id_doctor" class="form-label">Doctor</label>
+                {{ form.doctor }}
             </div>
-            
-            <div class="d-flex justify-content-end gap-2">
-                <a href="{% if object %}{% url 'timeline:event-detail' object.pk %}{% else %}{% url 'timeline:index' %}{% endif %}" 
-                   class="btn btn-outline-secondary rounded-pill px-4">
-                    Cancel
-                </a>
-                <button type="submit" class="btn btn-primary rounded-pill px-4">
-                    <i class="fas fa-save me-2"></i> Save
-                </button>
+
+            <div class="mb-3">
+                <label for="id_hospital" class="form-label">Hospital</label>
+                {{ form.hospital }}
             </div>
+
+            <div class="mb-3">
+                <label for="id_total_cost" class="form-label">Total Cost</label>
+                {{ form.total_cost }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_insurance_covered" class="form-label">Insurance Covered</label>
+                {{ form.insurance_covered }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_voice_recording" class="form-label">Voice Recording</label>
+                {{ form.voice_recording }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_reports" class="form-label">Upload Reports</label>
+                <input type="file" name="reports" id="id_reports" multiple accept=".pdf,.jpg,.jpeg,.png" class="form-control">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
         </form>
     </div>
 </div>

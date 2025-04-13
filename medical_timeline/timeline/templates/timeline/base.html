@@ -53,15 +53,18 @@
                     {% if user.is_authenticated %}
                         <a href="{% url 'timeline:index' %}" 
                            class="text-gray-600 hover:text-green-600 transition-colors duration-200">Dashboard</a>
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'timeline:analytics' %}" 
-                               class="text-gray-600 hover:text-green-600 transition-colors duration-200">
-                                <i class="fas fa-chart-line me-1"></i>Analytics
-                            </a>
-                        {% endif %}
+                        <a href="{% url 'timeline:analytics' %}" 
+                           class="text-gray-600 hover:text-green-600 transition-colors duration-200">
+                            <i class="fas fa-chart-line me-1"></i> Analytics
+                        </a>
                         <a href="{% url 'timeline:event-add' %}" 
                            class="text-gray-600 hover:text-green-600 transition-colors duration-200">Add Event</a>
                     {% endif %}
+                    <!-- Add Public Analytics Link -->
+                    <a href="{% url 'timeline:public-analytics' %}" 
+                       class="text-gray-600 hover:text-green-600 transition-colors duration-200">
+                        <i class="fas fa-chart-pie me-1"></i> Public Analytics
+                    </a>
                 </div>
 
                 <div class="flex items-center space-x-4">

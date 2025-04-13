@@ -123,7 +123,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'timeline/templates/timeline/static'),
+    os.path.join(BASE_DIR, 'timeline', 'static'),  # Correct the path
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -137,7 +137,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Authentication
 LOGIN_URL = 'timeline:login'

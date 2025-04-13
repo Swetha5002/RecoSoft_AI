@@ -1,5 +1,5 @@
 from django import forms
-from .models import MedicalProfile, MedicalEvent, EventAttachment
+from .models import MedicalProfile, MedicalEvent, EventAttachment, EventReport
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -28,31 +28,26 @@ class MedicalEventForm(forms.ModelForm):
         widget=forms.DateInput(attrs={'type': 'date'}),
         initial=timezone.now
     )
-    
+    voice_recording = forms.FileField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'accept': 'audio/*'})
+    )
+
     class Meta:
         model = MedicalEvent
         fields = [
-            'event_type', 'title', 'date', 'condition', 
-            'hospital', 'doctor', 'total_cost', 
-            'insurance_covered', 'status', 'summary'
+            'event_type', 'title', 'date', 'summary', 'voice_recording',
+            'doctor', 'hospital', 'total_cost', 'insurance_covered'
         ]
         widgets = {
             'event_type': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'summary': forms.Textarea(attrs={'rows': 4}),
+            'doctor': forms.TextInput(attrs={'class': 'form-control'}),
+            'hospital': forms.TextInput(attrs={'class': 'form-control'}),
+            'total_cost': forms.NumberInput(attrs={'class': 'form-control'}),
+            'insurance_covered': forms.NumberInput(attrs={'class': 'form-control'}),
         }
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        total_cost = cleaned_data.get('total_cost', 0)
-        insurance_covered = cleaned_data.get('insurance_covered', 0)
-        
-        if insurance_covered > total_cost:
-            raise forms.ValidationError(
-                "Insurance covered amount cannot be greater than total cost."
-            )
-        
-        return cleaned_data
 
 class AttachmentForm(forms.ModelForm):
     class Meta:

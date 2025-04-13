@@ -15,8 +15,11 @@ import json
 import secrets
 from decimal import Decimal
 from django.core.serializers.json import DjangoJSONEncoder
+import speech_recognition as sr
+from PIL import Image
+import pytesseract
 
-from .models import MedicalProfile, MedicalEvent, EventAttachment
+from .models import MedicalProfile, MedicalEvent, EventAttachment, EventReport
 from .forms import MedicalProfileForm, MedicalEventForm, AttachmentForm
 
 from django.contrib.auth.forms import UserCreationForm
@@ -52,7 +55,12 @@ class SignUpView(CreateView):
 def index(request):
     profile = MedicalProfile.objects.filter(user=request.user).first()
     events = MedicalEvent.objects.filter(user=request.user).order_by('-date')
-    
+
+    # Debugging: Check for events without primary keys
+    for event in events:
+        if not event.pk:
+            print(f"Event without PK: {event}")
+
     # Add statistics
     stats = {
         'total_events': events.count(),
@@ -60,7 +68,7 @@ def index(request):
         'insurance_covered': sum(event.insurance_covered for event in events),
         'event_types': events.values('event_type').annotate(count=Count('event_type'))
     }
-    
+
     # Group events by year
     events_by_year = {}
     for event in events:
@@ -68,7 +76,7 @@ def index(request):
         if year not in events_by_year:
             events_by_year[year] = []
         events_by_year[year].append(event)
-    
+
     context = {
         'profile': profile,
         'events_by_year': events_by_year,
@@ -153,20 +161,10 @@ class MedicalEventCreateView(LoginRequiredMixin, CreateView):
     form_class = MedicalEventForm
     template_name = 'timeline/event_form.html'
     success_url = reverse_lazy('timeline:index')
-    
+
     def form_valid(self, form):
         form.instance.user = self.request.user
         response = super().form_valid(form)
-        
-        # Handle file attachments
-        files = self.request.FILES.getlist('attachments')
-        for file in files:
-            EventAttachment.objects.create(
-                event=self.object,
-                file=file
-            )
-        
-        messages.success(self.request, 'Event added successfully!')
         return response
 
     def get_context_data(self, **kwargs):
@@ -323,3 +321,76 @@ def health_analytics(request):
     }
     
     return render(request, 'timeline/analytics.html', context)
+
+def public_health_analytics(request):
+    # Get all events (not filtered by user)
+    events = MedicalEvent.objects.all()
+
+    # Time-based Analysis (Yearly and Monthly)
+    events_by_year = list(events.annotate(year=ExtractYear('date'))
+        .values('year')
+        .annotate(count=Count('id'))
+        .order_by('year'))
+
+    events_by_month = list(events.annotate(month=ExtractMonth('date'))
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month'))
+
+    # Location Analysis
+    location_stats = list(events.exclude(hospital='')
+        .values('hospital')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:5])
+
+    # Cost Analysis
+    cost_by_type = list(events.values('event_type')
+        .annotate(
+            total_cost=Sum('total_cost'),
+            event_count=Count('id')
+        ).annotate(
+            avg_cost=F('total_cost') / F('event_count')
+        ).order_by('-total_cost'))
+
+    # Top Conditions
+    condition_stats = events.exclude(condition='').values('condition').annotate(count=Count('id')).order_by('-count')[:10]
+    total_conditions = sum(stat['count'] for stat in condition_stats)
+
+    condition_stats_with_percent = [
+        {
+            'condition': stat['condition'],
+            'count': stat['count'],
+            'percentage': (stat['count'] / total_conditions * 100) if total_conditions > 0 else 0
+        }
+        for stat in condition_stats
+    ]
+
+    # Insurance Coverage Analysis
+    total_cost = events.aggregate(total=Sum('total_cost'))['total'] or 0
+    total_covered = events.aggregate(covered=Sum('insurance_covered'))['covered'] or 0
+
+    insurance_data = {
+        'total_cost': float(total_cost),
+        'total_covered': float(total_covered),
+        'out_of_pocket': float(total_cost - total_covered)
+    }
+    insurance_coverage_rate = (total_covered / total_cost * 100) if total_cost > 0 else 0
+
+    # Event Type Distribution
+    type_distribution = list(events.values('event_type')
+        .annotate(count=Count('id'))
+        .order_by('-count'))
+
+    context = {
+        'events_by_year': json.dumps(events_by_year, cls=DecimalEncoder),
+        'events_by_month': json.dumps(events_by_month, cls=DecimalEncoder),
+        'location_stats': json.dumps(location_stats, cls=DecimalEncoder),
+        'cost_by_type': json.dumps(cost_by_type, cls=DecimalEncoder),
+        'insurance_data': json.dumps(insurance_data, cls=DecimalEncoder),
+        'insurance_coverage_rate': insurance_coverage_rate,
+        'type_distribution': json.dumps(type_distribution, cls=DecimalEncoder),
+        'condition_stats': condition_stats_with_percent
+    }
+
+    return render(request, 'timeline/public_analytics.html', context)
+

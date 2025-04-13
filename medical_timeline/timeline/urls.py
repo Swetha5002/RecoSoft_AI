@@ -1,7 +1,9 @@
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 from django.contrib.auth import views as auth_views
-from .views import SignUpView
+from .views import SignUpView, public_health_analytics
 from timeline.models import MedicalEvent
 
 app_name = 'timeline'
@@ -33,6 +35,7 @@ urlpatterns = [
 
     # Analytics
     path('analytics/', views.health_analytics, name='analytics'),
-]
+    path('public-analytics/', public_health_analytics, name='public-analytics'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 MedicalEvent.objects.all().count()  # Should be greater than 0

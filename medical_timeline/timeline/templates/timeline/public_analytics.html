@@ -1,0 +1,103 @@
+{% extends 'timeline/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4 py-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-emerald-800 mb-2">Public Health Analytics Dashboard</h1>
+            <p class="text-emerald-600">Comprehensive analysis of medical events and costs across all users</p>
+        </div>
+        <div class="mt-4 md:mt-0">
+            <span class="inline-block bg-emerald-100 text-emerald-800 text-sm font-medium px-3 py-1 rounded-full">
+                Last Updated: {% now "F j, Y" %}
+            </span>
+        </div>
+    </div>
+    
+    <!-- Dashboard Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Yearly Events Chart -->
+        <div class="lg:col-span-6">
+            <div class="bg-white rounded-xl shadow-md p-4">
+                <h3 class="text-lg font-semibold text-emerald-800 mb-4">Health Events Over Time (Yearly)</h3>
+                <canvas id="yearlyEventsChart" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Monthly Events Chart -->
+        <div class="lg:col-span-6">
+            <div class="bg-white rounded-xl shadow-md p-4">
+                <h3 class="text-lg font-semibold text-emerald-800 mb-4">Health Events Over Time (Monthly)</h3>
+                <canvas id="monthlyEventsChart" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Conditions -->
+        <div class="lg:col-span-6">
+            <div class="bg-white rounded-xl shadow-md p-4">
+                <h3 class="text-lg font-semibold text-emerald-800 mb-4">Top Conditions</h3>
+                <ul>
+                    {% for condition in condition_stats %}
+                    <li>{{ condition.condition }}: {{ condition.count }} ({{ condition.percentage|floatformat:2 }}%)</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Insurance Coverage -->
+        <div class="lg:col-span-6">
+            <div class="bg-white rounded-xl shadow-md p-4">
+                <h3 class="text-lg font-semibold text-emerald-800 mb-4">Insurance Coverage</h3>
+                <p>Total Cost: ${{ insurance_data.total_cost }}</p>
+                <p>Covered by Insurance: ${{ insurance_data.total_covered }}</p>
+                <p>Out of Pocket: ${{ insurance_data.out_of_pocket }}</p>
+                <p>Coverage Rate: {{ insurance_coverage_rate|floatformat:2 }}%</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const yearlyData = JSON.parse('{{ events_by_year|escapejs }}');
+    const monthlyData = JSON.parse('{{ events_by_month|escapejs }}');
+
+    // Yearly Events Chart
+    const yearlyCtx = document.getElementById('yearlyEventsChart').getContext('2d');
+    new Chart(yearlyCtx, {
+        type: 'line',
+        data: {
+            labels: yearlyData.map(item => item.year),
+            datasets: [{
+                label: 'Number of Events',
+                data: yearlyData.map(item => item.count),
+                borderColor: '#059669',
+                backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            }]
+        }
+    });
+
+    // Monthly Events Chart
+    const monthlyCtx = document.getElementById('monthlyEventsChart').getContext('2d');
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: monthlyData.map(item => `Month ${item.month}`),
+            datasets: [{
+                label: 'Number of Events',
+                data: monthlyData.map(item => item.count),
+                backgroundColor: '#2563eb',
+                borderColor: '#2563eb',
+                borderWidth: 1
+            }]
+        }
+    });
+});
+</script>
+{% endblock %}

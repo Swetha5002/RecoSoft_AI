@@ -9,7 +9,7 @@ import os
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]
-    valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
+    valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.mp3', '.wav']
     if not ext.lower() in valid_extensions:
         raise ValidationError('Unsupported file type.')
 
@@ -29,7 +29,12 @@ class MedicalProfile(models.Model):
     )
     height = models.PositiveIntegerField(help_text="Height in cm", null=True, blank=True)
     weight = models.PositiveIntegerField(help_text="Weight in kg", null=True, blank=True)
-    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
+    profile_picture = models.ImageField(
+        upload_to='profile_pics/', 
+        null=True, 
+        blank=True, 
+        default='profile_pics/default-profile.jpg'  # Default profile picture
+    )
     share_token = models.CharField(max_length=100, blank=True, null=True, unique=True)
     
     def __str__(self):
@@ -72,9 +77,20 @@ class MedicalEvent(models.Model):
     total_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     insurance_covered = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='resolved')
-    summary = models.TextField()
+    summary = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    voice_recording = models.FileField(
+        upload_to='voice_recordings/',
+        validators=[validate_file_extension],
+        blank=True,
+        null=True
+    )
+    reports = models.ManyToManyField(
+        'EventReport',
+        blank=True,
+        related_name='related_events'  # Set a unique related_name
+    )
     
     class Meta:
         ordering = ['-date']
@@ -114,6 +130,22 @@ class EventAttachment(models.Model):
     
     def filename(self):
         return self.file.name.split('/')[-1]
+
+class EventReport(models.Model):
+    event = models.ForeignKey(
+        MedicalEvent,
+        on_delete=models.CASCADE,
+        related_name='event_reports'  # Set a unique related_name
+    )
+    file = models.FileField(
+        upload_to='event_reports/',
+        validators=[validate_file_extension]
+    )
+    extracted_text = models.TextField(blank=True, null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Report for {self.event.title}"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
