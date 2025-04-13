@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from django.contrib.auth import views as auth_views
-from .views import SignUpView, public_health_analytics
+from .views import SignUpView, public_health_analytics, generate_report
 from timeline.models import MedicalEvent
 
 app_name = 'timeline'
@@ -24,6 +24,7 @@ urlpatterns = [
     path('events/<int:pk>/', views.MedicalEventDetailView.as_view(), name='event-detail'),
     path('events/<int:pk>/edit/', views.MedicalEventUpdateView.as_view(), name='event-edit'),
     path('events/<int:pk>/delete/', views.MedicalEventDeleteView.as_view(), name='event-delete'),
+    path('events/<int:event_id>/report/', generate_report, name='generate-report'),
     
     # Attachments
     path('events/<int:event_id>/upload/', views.upload_attachment, name='upload-attachment'),

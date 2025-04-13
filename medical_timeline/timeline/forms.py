@@ -50,8 +50,10 @@ class MedicalEventForm(forms.ModelForm):
         }
 
 class AttachmentForm(forms.ModelForm):
+    file = forms.FileField(widget=forms.ClearableFileInput())
+
     class Meta:
-        model = EventAttachment
+        model = EventReport
         fields = ['file']
     
     def clean_file(self):

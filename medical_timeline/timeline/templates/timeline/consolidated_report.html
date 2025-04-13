@@ -1,0 +1,405 @@
+{% extends 'timeline/base.html' %}
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="glass-card p-5 shadow-lg" id="report-container">
+        <!-- Report Header with Print Button -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="text-3xl font-bold text-primary mb-0">
+                <i class="fas fa-file-medical-alt me-2"></i>Consolidated Medical Report
+            </h1>
+            <button onclick="window.print()" class="btn btn-outline-primary print-button">
+                <i class="fas fa-print me-2"></i>Print Report
+            </button>
+        </div>
+
+        <!-- Patient Info Section -->
+        <div class="bg-light-blue p-4 rounded-lg shadow-sm mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h2 class="text-xl font-semibold text-dark-blue mb-3">
+                        <i class="fas fa-user-circle me-2"></i>Patient Information
+                    </h2>
+                    <div class="patient-details">
+                        <p><strong>Name:</strong> Arun Sharma</p>
+                        <p><strong>Date of Birth:</strong> 13 Aug 1996</p>
+                        <p><strong>Blood Type:</strong> O+</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h2 class="text-xl font-semibold text-dark-blue mb-3">
+                        <i class="fas fa-calendar-check me-2"></i>Event Details
+                    </h2>
+                    <div class="event-details">
+                        <p><strong>Title:</strong> {{ event.title }}</p>
+                        <p><strong>Date:</strong> {{ event.date }}</p>
+                        <p><strong>Event Type:</strong> {{ event.get_event_type_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Sections -->
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- AI-Generated Summary -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark-blue text-black">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-robot me-2"></i>AI-Generated Summary
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <pre class="ai-report p-3 bg-light rounded whitespace-pre-wrap">{{ ai_generated_summary }}</pre>
+                    </div>
+                </div>
+
+                <!-- Summary Section -->
+                {% if event.summary %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark-blue text-black">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-clipboard me-2"></i>Summary
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-content p-3 bg-light rounded">
+                            {{ event.summary|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- AI Generated Report -->
+                {% if ai_generated_text %}
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark-blue text-black">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-robot me-2"></i>AI Generated Report
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="ai-generated-report" class="ai-report p-3 bg-light rounded"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Transcript and Extracted Text Section -->
+                {% if consolidated_report %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark-blue text-black">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-file-alt me-2"></i>Detailed Information
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h3 class="h6 text-dark-blue mb-3">
+                                    <i class="fas fa-microphone me-2"></i>Voice Recording Transcript
+                                </h3>
+                                <div class="transcript-box p-3 bg-light rounded">
+                                    I’ve been feeling this tightness in my chest lately—especially when I climb stairs or walk fast. It’s not sharp pain, but it’s there, and it scares me. I feel tired all the time, even when I haven’t done much. A few times I got dizzy too. The doctor said my cholesterol is high and that my heart might be under stress. I’ve started on medication and trying to eat healthier, but honestly, I’m a little overwhelmed. I just want to feel normal again.
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h3 class="h6 text-dark-blue mb-3">
+                                    <i class="fas fa-file-medical me-2"></i>Extracted Text from Reports
+                                </h3>
+                                <div class="extracted-text-box p-3 bg-light rounded">
+                                    Patient Name: Arun Sharma<br>
+                                    Age: 38<br>
+                                    Sex: Male<br>
+                                    Date of Visit: April 10, 2025<br>
+                                    Primary Complaint: Persistent chest pain, shortness of breath, and fatigue over the past 3 weeks.<br>
+                                    <br>
+                                    Vitals on Examination:<br>
+                                    • Blood Pressure: 148/92 mmHg<br>
+                                    • Heart Rate: 102 bpm<br>
+                                    • Respiratory Rate: 20 breaths/min<br>
+                                    • Temperature: 98.6°F<br>
+                                    • Oxygen Saturation: 95% (room air)<br>
+                                    <br>
+                                    Investigations:<br>
+                                    • ECG: Mild ST-segment changes suggestive of ischemia<br>
+                                    • Chest X-ray: Normal<br>
+                                    • Troponin Levels: Slightly elevated<br>
+                                    • Blood Work:<br>
+                                    o LDL Cholesterol: 178 mg/dL (High)<br>
+                                    o Blood Sugar (Fasting): 122 mg/dL (Prediabetic range)<br>
+                                    <br>
+                                    Diagnosis:<br>
+                                    • Unstable Angina<br>
+                                    • Hypertension<br>
+                                    • Early-stage Type 2 Diabetes (suspected, pending confirmation)<br>
+                                    <br>
+                                    Treatment Initiated:<br>
+                                    • Aspirin 81 mg daily<br>
+                                    • Atorvastatin 20 mg daily<br>
+                                    • Nitroglycerin as needed for chest pain<br>
+                                    • Lifestyle modification (diet + walking 30 mins/day)<br>
+                                    • Scheduled stress test and echocardiogram for follow-up<br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Media Section -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-dark-blue text-white">
+                        <h2 class="h5 mb-0">
+                            <i class="fas fa-images me-2"></i>Media Attachments
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- Images -->
+                        <div class="mb-4">
+                            <h3 class="h6 text-dark-blue mb-3">Images</h3>
+                            {% if images %}
+                            <div class="gallery-grid">
+                                {% for image in images %}
+                                <a href="{{ image.file.url }}" data-lightbox="report-images" class="gallery-item">
+                                    <img src="{{ image.file.url }}" alt="Medical image" class="img-thumbnail">
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No images uploaded.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Documents -->
+                        <div class="mb-4">
+                            <h3 class="h6 text-dark-blue mb-3">Documents</h3>
+                            {% if documents %}
+                            <ul class="list-group">
+                                {% for document in documents %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="text-truncate" style="max-width: 70%;">
+                                        <i class="fas fa-file-pdf me-2 text-danger"></i>
+                                        {{ document.file.name|slice:"20:" }}
+                                    </span>
+                                    <a href="{{ document.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <p class="text-muted">No documents uploaded.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Voice Recording -->
+                        <div>
+                            <h3 class="h6 text-dark-blue mb-3">Voice Recording</h3>
+                            {% if event.voice_recording %}
+                            <div class="audio-player">
+                                <audio controls class="w-100">
+                                    <source src="{{ event.voice_recording.url }}" type="audio/mpeg">
+                                    Your browser does not support the audio element.
+                                </audio>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <small class="text-muted">Transcript available below</small>
+                                    <a href="{{ event.voice_recording.url }}" download class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No voice recording uploaded.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer with Back Button -->
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{% url 'timeline:index' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Timeline
+            </a>
+            <div>
+                <button onclick="window.print()" class="btn btn-primary print-button me-2">
+                    <i class="fas fa-print me-2"></i>Print Report
+                </button>
+                <button class="btn btn-outline-success" onclick="shareReport()">
+                    <i class="fas fa-share-alt me-2"></i>Share Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ block.super }}
+<style>
+    /* Custom Colors */
+    :root {
+        --dark-blue: #2c3e50;
+        --light-blue: #f8f9fa;
+        --primary-blue: #3498db;
+    }
+    
+    .bg-dark-blue {
+        background-color: var(--dark-blue);
+    }
+    
+    .bg-light-blue {
+        background-color: var(--light-blue);
+    }
+    
+    .text-dark-blue {
+        color: var(--dark-blue);
+    }
+    
+    /* Card Styling */
+    .card {
+        border: none;
+        border-radius: 10px;
+    }
+    
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+    
+    /* Glass Card Effect */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Gallery Grid */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .gallery-item img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+    
+    .gallery-item:hover img {
+        transform: scale(1.05);
+    }
+    
+    /* Text Boxes */
+    .transcript-box, .extracted-text-box, .summary-content, .ai-report {
+        max-height: 300px;
+        overflow-y: auto;
+        line-height: 1.6;
+    }
+    
+    /* Typing Animation */
+    #ai-generated-report {
+        white-space: pre-wrap;
+    }
+
+    pre.whitespace-pre-wrap {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: inherit;
+        margin: 0;
+    }
+    
+    /* Print Styles */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #report-container, #report-container * {
+            visibility: visible;
+        }
+        #report-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none;
+            padding: 0;
+        }
+        .print-button {
+            display: none !important;
+        }
+        .card {
+            page-break-inside: avoid;
+        }
+        .gallery-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .glass-card {
+            background: white;
+            backdrop-filter: none;
+            border: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+<script>
+    const aiGeneratedText = `{{ ai_generated_text|escapejs }}`;
+</script>
+<script>
+    // Typing effect for AI Generated Report
+    document.addEventListener('DOMContentLoaded', function() {
+        const typingSpeed = 20; // Speed in milliseconds
+        const delayBeforeStart = 3000; // 3 seconds delay
+        let index = 0;
+        const reportElement = document.getElementById('ai-generated-report');
+        
+        if (reportElement) {
+            // Clear the element first
+            reportElement.innerHTML = '';
+            
+            function typeText() {
+                if (index < aiGeneratedText.length) {
+                    reportElement.innerHTML += aiGeneratedText.charAt(index);
+                    index++;
+                    setTimeout(typeText, typingSpeed);
+                    
+                    // Auto-scroll to bottom
+                    reportElement.scrollTop = reportElement.scrollHeight;
+                }
+            }
+            
+            // Start typing after the delay
+            setTimeout(typeText, delayBeforeStart);
+        }
+    });
+    
+    // Initialize lightbox for images
+    lightbox.option({
+        'resizeDuration': 200,
+        'wrapAround': true,
+        'albumLabel': "Image %1 of %2"
+    });
+
+    function shareReport() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Consolidated Medical Report',
+                text: 'Check out this medical report for Arun Sharma.',
+                url: window.location.href
+            }).catch((error) => console.error('Error sharing:', error));
+        } else {
+            alert('Sharing is not supported on this browser.');
+        }
+    }
+</script>
+{% endblock %}

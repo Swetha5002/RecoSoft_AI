@@ -9,7 +9,7 @@ import os
 
 def validate_file_extension(value):
     ext = os.path.splitext(value.name)[1]
-    valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.mp3', '.wav']
+    valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.mp3', '.wav', '.doc', '.docx', '.txt']
     if not ext.lower() in valid_extensions:
         raise ValidationError('Unsupported file type.')
 
@@ -91,12 +91,14 @@ class MedicalEvent(models.Model):
         blank=True,
         related_name='related_events'  # Set a unique related_name
     )
+    generated_report = models.TextField(blank=True, null=True)  # New field for the default report
+    consolidated_report = models.TextField(blank=True, null=True)  # Field for the consolidated report
     
     class Meta:
         ordering = ['-date']
     
     def __str__(self):
-        return f"{self.get_event_type_display()} - {self.title} ({self.date})"
+        return self.title
     
     def get_absolute_url(self):
         return reverse('timeline:event-detail', kwargs={'pk': self.pk})
@@ -135,10 +137,10 @@ class EventReport(models.Model):
     event = models.ForeignKey(
         MedicalEvent,
         on_delete=models.CASCADE,
-        related_name='event_reports'  # Set a unique related_name
+        related_name='event_reports'
     )
     file = models.FileField(
-        upload_to='event_reports/',
+        upload_to='event_reports/',  # Store files in media/event_reports/
         validators=[validate_file_extension]
     )
     extracted_text = models.TextField(blank=True, null=True)

@@ -18,6 +18,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 import speech_recognition as sr
 from PIL import Image
 import pytesseract
+import requests
 
 from .models import MedicalProfile, MedicalEvent, EventAttachment, EventReport
 from .forms import MedicalProfileForm, MedicalEventForm, AttachmentForm
@@ -45,8 +46,6 @@ class SignUpView(CreateView):
     template_name = 'timeline/registration/signup.html'
 
     def form_valid(self, form):
-        # Just save the user without creating profile
-        # Profile will be created by the signal
         response = super().form_valid(form)
         messages.success(self.request, 'Account created successfully! Please login.')
         return response
@@ -56,12 +55,6 @@ def index(request):
     profile = MedicalProfile.objects.filter(user=request.user).first()
     events = MedicalEvent.objects.filter(user=request.user).order_by('-date')
 
-    # Debugging: Check for events without primary keys
-    for event in events:
-        if not event.pk:
-            print(f"Event without PK: {event}")
-
-    # Add statistics
     stats = {
         'total_events': events.count(),
         'total_cost': sum(event.total_cost for event in events),
@@ -69,7 +62,6 @@ def index(request):
         'event_types': events.values('event_type').annotate(count=Count('event_type'))
     }
 
-    # Group events by year
     events_by_year = {}
     for event in events:
         year = event.date.year
@@ -88,7 +80,6 @@ def index(request):
 def share_timeline(request, user_id):
     user_profile = get_object_or_404(MedicalProfile, user_id=user_id)
     if request.method == 'POST':
-        # Generate a unique sharing link
         share_token = generate_share_token()
         user_profile.share_token = share_token
         user_profile.save()
@@ -99,13 +90,10 @@ def share_timeline(request, user_id):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def shared_timeline(request, token):
-    """View for displaying a shared timeline"""
     try:
-        # Find the profile with matching share token
         profile = get_object_or_404(MedicalProfile, share_token=token)
         events = MedicalEvent.objects.filter(user=profile.user).order_by('-date')
         
-        # Add statistics
         stats = {
             'total_events': events.count(),
             'total_cost': sum(event.total_cost for event in events),
@@ -113,12 +101,10 @@ def shared_timeline(request, token):
             'event_types': events.values('event_type').annotate(count=Count('event_type'))
         }
         
-        # Pagination
         paginator = Paginator(events, 10)
         page = request.GET.get('page')
         events_paginated = paginator.get_page(page)
         
-        # Group events by year
         events_by_year = {}
         for event in events_paginated:
             year = event.date.year
@@ -131,14 +117,13 @@ def shared_timeline(request, token):
             'events_by_year': events_by_year,
             'stats': stats,
             'page_obj': events_paginated,
-            'is_shared': True  # Flag to modify template behavior
+            'is_shared': True
         }
         return render(request, 'timeline/shared_timeline.html', context)
     except (MedicalProfile.DoesNotExist, ValueError):
         raise Http404("Timeline not found or sharing has expired")
 
 def generate_share_token():
-    """Generate a unique token for timeline sharing"""
     return secrets.token_urlsafe(32)
 
 class MedicalProfileUpdateView(LoginRequiredMixin, UpdateView):
@@ -148,7 +133,6 @@ class MedicalProfileUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('timeline:index')
     
     def get_object(self, queryset=None):
-        # Get or create profile for the current user
         obj, created = MedicalProfile.objects.get_or_create(user=self.request.user)
         return obj
     
@@ -160,12 +144,11 @@ class MedicalEventCreateView(LoginRequiredMixin, CreateView):
     model = MedicalEvent
     form_class = MedicalEventForm
     template_name = 'timeline/event_form.html'
-    success_url = reverse_lazy('timeline:index')
 
     def form_valid(self, form):
         form.instance.user = self.request.user
         response = super().form_valid(form)
-        return response
+        return redirect('timeline:generate-report', event_id=form.instance.id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -176,28 +159,23 @@ class MedicalEventUpdateView(LoginRequiredMixin, UpdateView):
     model = MedicalEvent
     form_class = MedicalEventForm
     template_name = 'timeline/event_form.html'
-    
-    def dispatch(self, request, *args, **kwargs):
-        # Ensure users can only edit their own events
-        obj = self.get_object()
-        if obj.user != self.request.user:
-            raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
-    
-    def get_success_url(self):
-        return reverse_lazy('timeline:event-detail', kwargs={'pk': self.object.pk})
-    
+
     def form_valid(self, form):
-        messages.success(self.request, 'Event updated successfully!')
-        return super().form_valid(form)
+        form.instance.user = self.request.user
+        response = super().form_valid(form)
+        return redirect('timeline:index')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_edit'] = True
+        return context
 
 class MedicalEventDetailView(LoginRequiredMixin, DetailView):
     model = MedicalEvent
     template_name = 'timeline/partials/event_detail.html'
-    context_object_name = 'event'  # Add this line
+    context_object_name = 'event'
     
     def dispatch(self, request, *args, **kwargs):
-        # Ensure users can only view their own events
         obj = self.get_object()
         if obj.user != self.request.user:
             raise PermissionDenied
@@ -205,7 +183,7 @@ class MedicalEventDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['event'] = self.get_object()  # Explicitly add event to context
+        context['event'] = self.get_object()
         return context
 
 class MedicalEventDeleteView(LoginRequiredMixin, DeleteView):
@@ -227,19 +205,18 @@ def upload_attachment(request, event_id):
     event = get_object_or_404(MedicalEvent, pk=event_id, user=request.user)
     
     if request.method == 'POST':
-        form = AttachmentForm(request.POST, request.FILES)
-        if form.is_valid():
-            attachment = form.save(commit=False)
-            attachment.event = event
-            attachment.save()
-            return JsonResponse({
+        files = request.FILES.getlist('file')
+        response_data = []
+        for file in files:
+            report = EventReport(event=event, file=file)
+            report.save()
+            response_data.append({
                 'success': True,
-                'filename': attachment.filename(),
-                'url': attachment.file.url,
-                'id': attachment.id
+                'filename': report.file.name,
+                'url': report.file.url,
+                'id': report.id
             })
-        else:
-            return JsonResponse({'success': False, 'errors': form.errors})
+        return JsonResponse({'success': True, 'attachments': response_data})
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
@@ -257,22 +234,18 @@ class DecimalEncoder(DjangoJSONEncoder):
 
 @login_required
 def health_analytics(request):
-    # Get user's events
     events = MedicalEvent.objects.filter(user=request.user)
     
-    # Time-based Analysis
     events_by_year = list(events.annotate(year=ExtractYear('date'))
         .values('year')
         .annotate(count=Count('id'))
         .order_by('year'))
     
-    # Location Analysis
     location_stats = list(events.exclude(hospital='')
         .values('hospital')
         .annotate(count=Count('id'))
         .order_by('-count')[:5])
     
-    # Cost Analysis
     cost_by_type = list(events.values('event_type')
         .annotate(
             total_cost=Sum('total_cost'),
@@ -281,7 +254,6 @@ def health_analytics(request):
             avg_cost=F('total_cost') / F('event_count')
         ).order_by('-total_cost'))
     
-    # Condition Analysis with percentages
     condition_stats = events.exclude(condition='').values('condition').annotate(count=Count('id')).order_by('-count')[:10]
     total_conditions = sum(stat['count'] for stat in condition_stats)
     
@@ -294,7 +266,6 @@ def health_analytics(request):
         for stat in condition_stats
     ]
     
-    # Insurance Coverage Analysis
     total_cost = events.aggregate(total=Sum('total_cost'))['total'] or 0
     total_covered = events.aggregate(covered=Sum('insurance_covered'))['covered'] or 0
     
@@ -305,7 +276,6 @@ def health_analytics(request):
     }
     insurance_coverage_rate = (total_covered / total_cost * 100) if total_cost > 0 else 0
     
-    # Event Type Distribution
     type_distribution = list(events.values('event_type')
         .annotate(count=Count('id'))
         .order_by('-count'))
@@ -323,10 +293,8 @@ def health_analytics(request):
     return render(request, 'timeline/analytics.html', context)
 
 def public_health_analytics(request):
-    # Get all events (not filtered by user)
     events = MedicalEvent.objects.all()
 
-    # Time-based Analysis (Yearly and Monthly)
     events_by_year = list(events.annotate(year=ExtractYear('date'))
         .values('year')
         .annotate(count=Count('id'))
@@ -337,13 +305,11 @@ def public_health_analytics(request):
         .annotate(count=Count('id'))
         .order_by('month'))
 
-    # Location Analysis
     location_stats = list(events.exclude(hospital='')
         .values('hospital')
         .annotate(count=Count('id'))
         .order_by('-count')[:5])
 
-    # Cost Analysis
     cost_by_type = list(events.values('event_type')
         .annotate(
             total_cost=Sum('total_cost'),
@@ -352,7 +318,6 @@ def public_health_analytics(request):
             avg_cost=F('total_cost') / F('event_count')
         ).order_by('-total_cost'))
 
-    # Top Conditions
     condition_stats = events.exclude(condition='').values('condition').annotate(count=Count('id')).order_by('-count')[:10]
     total_conditions = sum(stat['count'] for stat in condition_stats)
 
@@ -365,7 +330,6 @@ def public_health_analytics(request):
         for stat in condition_stats
     ]
 
-    # Insurance Coverage Analysis
     total_cost = events.aggregate(total=Sum('total_cost'))['total'] or 0
     total_covered = events.aggregate(covered=Sum('insurance_covered'))['covered'] or 0
 
@@ -376,7 +340,6 @@ def public_health_analytics(request):
     }
     insurance_coverage_rate = (total_covered / total_cost * 100) if total_cost > 0 else 0
 
-    # Event Type Distribution
     type_distribution = list(events.values('event_type')
         .annotate(count=Count('id'))
         .order_by('-count'))
@@ -393,4 +356,25 @@ def public_health_analytics(request):
     }
 
     return render(request, 'timeline/public_analytics.html', context)
+
+@login_required
+def generate_report(request, event_id):
+    event = get_object_or_404(MedicalEvent, id=event_id, user=request.user)
+    images = [report.file.path for report in event.event_reports.all() if report.file.name.lower().endswith(('.jpg', '.jpeg', '.png'))]
+    voice_file = event.voice_recording.path if event.voice_recording else None
+    extracted_text = ""
+    for image_path in images:
+        extracted_text += pytesseract.image_to_string(Image.open(image_path))
+    if voice_file:
+        extracted_text += " Voice transcript placeholder."
+    response = requests.post("https://api.deepseek.com/generate-summary", json={"text": extracted_text})
+    ai_generated_summary = response.json().get("summary", "No summary generated.")
+    context = {
+        "event": event,
+        "ai_generated_summary": ai_generated_summary,
+    }
+    return render(request, "timeline/consolidated_report.html", context)
+
+
+
 

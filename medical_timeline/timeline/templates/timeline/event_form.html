@@ -14,33 +14,9 @@
             {{ form|crispy }}
 
             <div class="mb-3">
-                <label for="id_doctor" class="form-label">Doctor</label>
-                {{ form.doctor }}
-            </div>
-
-            <div class="mb-3">
-                <label for="id_hospital" class="form-label">Hospital</label>
-                {{ form.hospital }}
-            </div>
-
-            <div class="mb-3">
-                <label for="id_total_cost" class="form-label">Total Cost</label>
-                {{ form.total_cost }}
-            </div>
-
-            <div class="mb-3">
-                <label for="id_insurance_covered" class="form-label">Insurance Covered</label>
-                {{ form.insurance_covered }}
-            </div>
-
-            <div class="mb-3">
-                <label for="id_voice_recording" class="form-label">Voice Recording</label>
-                {{ form.voice_recording }}
-            </div>
-
-            <div class="mb-3">
-                <label for="id_reports" class="form-label">Upload Reports</label>
-                <input type="file" name="reports" id="id_reports" multiple accept=".pdf,.jpg,.jpeg,.png" class="form-control">
+                <label for="id_file" class="form-label">Upload Reports</label>
+                <input type="file" name="file" id="id_file" multiple class="form-control">
+                <small class="text-muted">You can upload multiple files (PDF, JPG, PNG).</small>
             </div>
 
             <button type="submit" class="btn btn-primary">Save</button>
@@ -95,6 +71,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i]);
+    }
+
+    // Typing effect for AI-Generated Summary
+    const aiSummaryElement = document.getElementById('ai-summary');
+    const aiSummaryText = `{{ ai_generated_summary|escapejs }}`;
+    const typingSpeed = 50; // Speed in milliseconds
+    const delayBeforeStart = 500; // Delay before typing starts in milliseconds
+    let index = 0;
+
+    if (aiSummaryElement) {
+        aiSummaryElement.innerHTML = ''; // Clear the element first
+
+        setTimeout(function typeText() {
+            if (index < aiSummaryText.length) {
+                aiSummaryElement.innerHTML += aiSummaryText.charAt(index);
+                index++;
+                setTimeout(typeText, typingSpeed);
+            }
+        }, delayBeforeStart);
     }
 });
 </script>
